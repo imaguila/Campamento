@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  # 1. Database Service
+  db:
+    image: postgres:15-alpine
+    container_name: camp-postgres
+    restart: always
+    environment:
+      POSTGRES_DB: camp_db
+      POSTGRES_USER: admin_superuser
+      POSTGRES_PASSWORD: super_secret_admin_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # Mount the init script to run automatically on first start
+      - ./init-db:/docker-entrypoint-initdb.d
+    networks:
+      - camp-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin_superuser -d camp_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # 2. Backend API (Node.js/TypeScript)
+  api:
+    build: .
+    container_name: camp-api
+    restart: always
+    environment:
+      DATABASE_URL: postgres://camp_app_user:camp_secure_pass@db:5432/camp_db
+      PORT: 3000
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    networks:
+      - camp-network
+
+  # 3. Administration Tool (Optional for dev)
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: camp-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@camp.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - db
+    networks:
+      - camp-network
+
+networks:
+  camp-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
