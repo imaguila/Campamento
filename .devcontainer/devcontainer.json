@@ -1,0 +1,23 @@
+{
+  "name": "Campamento",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "api",
+  "workspaceFolder": "/workspace",
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "20"
+    }
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "ms-vscode.vscode-typescript-next",
+        "ckotzbauer.vscode-pgbrowser"
+      ]
+    }
+  },
+  "forwardPorts": [3000, 5432, 5050],
+  "postCreateCommand": "npm install"
+}
